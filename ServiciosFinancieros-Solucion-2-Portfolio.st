@@ -1,3 +1,144 @@
+!classDefinition: #AccountSummaryTest category: 'ServiciosFinancieros-Solucion-Portfolio'!
+TestCase subclass: #AccountSummaryTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Solucion-Portfolio'!
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:42:19'!
+test01SummaryOfEmptyAccountIsZero
+
+	| account accountSummary expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Balance = 0 pesos'.
+	account := ReceptiveAccount new.
+	accountSummary := AccountSummary forAccount: account.
+	
+	self assert: (accountSummary createAccountSummary = expectedSummary ).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:43:01'!
+test02SummaryOfAccountWithDepositShowsSaidDepositWithCorrectValue
+
+	| account accountSummary expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Depósito por 10 pesos'.
+	expectedSummary add: 'Balance = 10 pesos'.
+	account := ReceptiveAccount new.
+	accountSummary := AccountSummary forAccount: account.
+	
+	Deposit register: (10 * peso) on: account.
+	
+	self assert: (expectedSummary = accountSummary createAccountSummary).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:58:41'!
+test03SummaryOfAccountWithWithdrawShowsSaidWithdrawWithCorrectValue
+
+	| account accountSummary expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Depósito por 100 pesos'.
+	expectedSummary add: 'Extracción por 50 pesos'.
+	expectedSummary add: 'Balance = 50 pesos'.
+	account := ReceptiveAccount new.
+	accountSummary := AccountSummary forAccount: account.
+	
+	Deposit register: (100 * peso) on: account.
+	Withdraw register: (50 * peso) on: account.
+	
+	self assert: (expectedSummary = accountSummary createAccountSummary).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:59:03'!
+test04SummaryOfAccountWithTransferWithdrawShowsSaidTransferWithdrawWithCorrectValue
+
+	| account targetAccount accountSummary expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Depósito por 100 pesos'.
+	expectedSummary add: 'Extracción por 50 pesos'.
+	expectedSummary add: 'Salida por transferencia de 20 pesos'.
+	expectedSummary add: 'Balance = 30 pesos'.
+	account := ReceptiveAccount new.
+	targetAccount := ReceptiveAccount new.
+	accountSummary := AccountSummary forAccount: account.
+	
+	Deposit register: (100 * peso) on: account.
+	Withdraw register: (50 * peso) on: account.
+	Transfer amount: (20 * peso) from: account to: targetAccount.
+	
+	self assert: ( expectedSummary = accountSummary createAccountSummary ).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:59:29'!
+test05SummaryOfAccountWithTransferDepositShowsSaidTransferDepositWithCorrectValue
+
+	| account targetAccount accountSummary expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Depósito por 100 pesos'.
+	expectedSummary add: 'Extracción por 50 pesos'.
+	expectedSummary add: 'Salida por transferencia de 20 pesos'.
+	expectedSummary add: 'Entrada por transferencia de 30 pesos'.
+	expectedSummary add: 'Balance = 60 pesos'.
+	account := ReceptiveAccount new.
+	targetAccount := ReceptiveAccount new.
+	accountSummary := AccountSummary forAccount: account.
+	
+	Deposit register: (100 * peso) on: account.
+	Deposit register: (100 * peso) on: targetAccount.
+	Withdraw register: (50 * peso) on: account.
+	Transfer amount: (20 * peso) from: account to: targetAccount.
+	Transfer amount: (30 * peso) from: targetAccount to: account.
+	
+	self assert: ( expectedSummary = accountSummary createAccountSummary ).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 21:07:35'!
+test06SummaryOfEmptyPortfolioIsZero
+
+	| account accountSummary expectedSummary portfolio |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Balance = 0 pesos'.
+	account := ReceptiveAccount new.
+	portfolio := Portfolio with: account.
+	accountSummary := AccountSummary forPortfolio: portfolio.
+	
+	self assert: (accountSummary createAccountSummary = expectedSummary ).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:03:51'!
+test07SummaryOfPortfolioWithAccountIsTheAccountsSummary
+
+	| account portfolio expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Depósito por 10 pesos'.
+	expectedSummary add: 'Balance = 10 pesos'.
+	account := ReceptiveAccount new.
+	portfolio := Portfolio with: account.
+	
+	Deposit register: (10 * peso) on: account.
+	
+	self assert: (expectedSummary = portfolio createAccountSummary).! !
+
+!AccountSummaryTest methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:04:13'!
+test08SummaryOfPortfolioWithMultipleAccountsIsSummaryOfAllAccounts
+
+	| account anotherAccount portfolio expectedSummary |
+	
+	expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Depósito por 10 pesos'.
+	expectedSummary add: 'Depósito por 10 pesos'.
+	expectedSummary add: 'Balance = 20 pesos'.
+	account := ReceptiveAccount new.
+	anotherAccount := ReceptiveAccount new.
+	portfolio := Portfolio with: account with: anotherAccount.
+	
+	Deposit register: (10 * peso) on: account.
+	Deposit register: (10 * peso) on: anotherAccount.
+	
+	self assert: (expectedSummary = portfolio createAccountSummary).! !
+
+
 !classDefinition: #PortfolioTest category: 'ServiciosFinancieros-Solucion-Portfolio'!
 TestCase subclass: #PortfolioTest
 	instanceVariableNames: ''
@@ -115,6 +256,15 @@ test07BalanceOfPortfolioWithoutAccountsIsZero
 
 	self assert: 0 equals: Portfolio new balance! !
 
+!PortfolioTest methodsFor: 'tests' stamp: 'SO 12/9/2020 21:52:44'!
+test07PortfolioHasZeroBalanceWhenCreated
+
+	| portfolio |
+	
+	portfolio := Portfolio new.
+
+	self assert: 0 equals: portfolio balance! !
+
 !PortfolioTest methodsFor: 'tests' stamp: 'LL 9/20/2020 20:57:31'!
 test08BalanceOfPortfolioWithOneAccountIsAccountBalance
 
@@ -125,6 +275,19 @@ test08BalanceOfPortfolioWithOneAccountIsAccountBalance
 	portfolio := Portfolio with: account.
 	
 	self assert: account balance equals: portfolio balance! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'SO 12/9/2020 21:53:32'!
+test08PortfolioBalanceEqualsSumOfItsAccountsBalance
+
+	| portfolio account |
+	
+	account := ReceptiveAccount new.
+	portfolio := Portfolio new.
+	
+	Deposit register: (100* peso) on: account.	
+	portfolio add: account.
+
+	self assert: (100 * peso) equals: portfolio balance! !
 
 !PortfolioTest methodsFor: 'tests' stamp: 'LL 9/20/2020 20:57:37'!
 test09BalanceOfPortfolioIsCalculatedRecursivelyOnPortfolios
@@ -141,10 +304,49 @@ test09BalanceOfPortfolioIsCalculatedRecursivelyOnPortfolios
 	
 	self assert: (composedPortfolioAccount balance + simplePortfolio balance) equals: composedPortofolio balance! !
 
+!PortfolioTest methodsFor: 'tests' stamp: 'SO 12/9/2020 21:54:27'!
+test09CanCheckIfATransactionIsRegisteredInAnyOfPortfoliosAccounts
+
+	| portfolio account deposit |
+	
+	account := ReceptiveAccount new.
+	portfolio := Portfolio new.
+	
+	deposit := Deposit register: (100* peso) on: account.	
+	portfolio add: account.
+
+	self assert: (portfolio hasRegistered: deposit)! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'SO 12/9/2020 21:55:26'!
+test10APorfolioCannotKnowOfTransactionOfAnAccountOutsideOfIt
+
+	| portfolio emptyAccount account deposit |
+	
+	account := ReceptiveAccount new.
+	emptyAccount := ReceptiveAccount new.
+	portfolio := Portfolio new.
+	
+	deposit := Deposit register: (100* peso) on: account.	
+	portfolio add: emptyAccount.
+
+	self deny: (portfolio hasRegistered: deposit)! !
+
 !PortfolioTest methodsFor: 'tests' stamp: 'LL 9/20/2020 20:57:42'!
 test10PortfolioWithoutAccountsHasNoRegisteredTransaction
 
 	self deny: (Portfolio new hasRegistered: (Deposit for: 100 * peso))! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'SO 12/9/2020 21:55:41'!
+test11CanCheckIfAnAccountIsInPortfolio
+
+	| portfolio account |
+	
+	account := ReceptiveAccount new.
+	portfolio := Portfolio new.
+	
+	portfolio add: account.
+
+	self assert: (account isInPortfolio: portfolio)! !
 
 !PortfolioTest methodsFor: 'tests' stamp: 'LL 9/20/2020 20:57:46'!
 test11PortfolioHasRegisteredItsAccountsTransactions
@@ -250,6 +452,40 @@ test06ReceptiveAccountDoNotKnowNotRegisteredTransactions
 	self deny: (account hasRegistered: deposit).
 	self deny: (account hasRegistered: withdraw).
 ! !
+
+
+!classDefinition: #TransferNetTest category: 'ServiciosFinancieros-Solucion-Portfolio'!
+TestCase subclass: #TransferNetTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Solucion-Portfolio'!
+
+!TransferNetTest methodsFor: 'as yet unclassified' stamp: 'SO 12/13/2020 23:44:35'!
+test01
+
+	| account expectedSummary |
+	
+	expectedSummary := 'Neto de Transferencias = 0 pesos'.
+	"expectedSummary := OrderedCollection new.
+	expectedSummary add: 'Neto de Transferencias = 0 pesos'."
+	account := ReceptiveAccount new.
+	
+	self assert: (account createNetTransfer = expectedSummary ).! !
+
+!TransferNetTest methodsFor: 'as yet unclassified' stamp: 'SO 12/13/2020 23:47:21'!
+test02
+
+	| account expectedSummary targetAccount |
+	
+	expectedSummary := 'Neto de Transferencias = 10 pesos'.
+	account := ReceptiveAccount new.
+	targetAccount := ReceptiveAccount new.
+	
+	Deposit register: (10 * peso) on: account.
+	Transfer amount: (10 * peso) from: account to: targetAccount.
+	
+	self assert: (expectedSummary = targetAccount createNetTransfer).! !
 
 
 !classDefinition: #TransferTest category: 'ServiciosFinancieros-Solucion-Portfolio'!
@@ -399,17 +635,6 @@ initialize
 	parents := OrderedCollection new.! !
 
 
-!Portfolio methodsFor: 'main protocol' stamp: 'LL 9/21/2020 01:35:22'!
-balance
-	
-	^accounts sum: [ :anAccount | anAccount balance ] ifEmpty: [ 0 * peso ]! !
-
-!Portfolio methodsFor: 'main protocol' stamp: 'HAW 5/25/2019 11:28:29'!
-hasRegistered: aTransaction
-
-	^accounts anySatisfy: [ :anAccount | anAccount hasRegistered: aTransaction ]! !
-
-
 !Portfolio methodsFor: 'accounts management' stamp: 'HAW 5/25/2019 11:49:06'!
 accountsSize
 	
@@ -433,6 +658,8 @@ hasAccount: anAccount
 hasAccounts
 	
 	^accounts isEmpty ! !
+
+
 
 
 !Portfolio methodsFor: 'composition - private' stamp: 'HAW 5/25/2019 12:17:31'!
@@ -478,31 +705,60 @@ signalCanNotAddAccount
 	
 	self error: self class canNotAddAccountErrorMessage! !
 
+
+!Portfolio methodsFor: 'main protocol' stamp: 'LL 9/21/2020 01:35:22'!
+balance
+	
+	^accounts sum: [ :anAccount | anAccount balance ] ifEmpty: [ 0 * peso ]! !
+
+!Portfolio methodsFor: 'main protocol' stamp: 'HAW 5/25/2019 11:28:29'!
+hasRegistered: aTransaction
+
+	^accounts anySatisfy: [ :anAccount | anAccount hasRegistered: aTransaction ]! !
+
+
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:00:20'!
+createAccountSummary
+
+	| summary |
+
+	summary := OrderedCollection new.
+	
+	accounts do: [ :anAccount |
+			anAccount createAccountSummaryForPortfolio: summary.
+		].
+	
+	summary add: ('Balance = ', (self balance asString)).
+	^summary.
+	
+	! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'Portfolio class' category: 'ServiciosFinancieros-Solucion-Portfolio'!
 Portfolio class
 	instanceVariableNames: ''!
 
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'HAW 5/25/2019 11:48:55'!
-canNotAddAccountErrorMessage
-	
-	^'Can not add repeated account to a portfolio'! !
-
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'HAW 5/25/2019 11:18:21'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'HAW 5/25/2019 11:18:21'!
 with: anAccount
 
 	^self new 
 		add: anAccount;
 		yourself! !
 
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'HAW 5/25/2019 11:23:59'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'HAW 5/25/2019 11:23:59'!
 with: anAccount with: anotherAccount
 
 	^self new 
 		add: anAccount;
 		add: anotherAccount;
 		yourself! !
+
+
+!Portfolio class methodsFor: 'error messages' stamp: 'HAW 5/25/2019 11:48:55'!
+canNotAddAccountErrorMessage
+	
+	^'Can not add repeated account to a portfolio'! !
 
 
 !classDefinition: #ReceptiveAccount category: 'ServiciosFinancieros-Solucion-Portfolio'!
@@ -548,6 +804,134 @@ isComposedBy: anAccount
 
 	^self = anAccount ! !
 
+!ReceptiveAccount methodsFor: 'composition - private' stamp: 'SO 12/9/2020 21:48:47'!
+isInPortfolio: aPortfolio 
+	
+	^parent = aPortfolio! !
+
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 19:33:06'!
+accountSummaryForDeposit: aDeposit
+
+	^'Depósito por ', aDeposit value asString.! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:11:01'!
+accountSummaryForTransferDepositLeg: aTransferDeposit
+
+	^'Entrada por transferencia de ', aTransferDeposit value asString.! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:10:50'!
+accountSummaryForTransferWithdrawLeg: aTransferWithdraw
+
+	^'Salida por transferencia de ', aTransferWithdraw value asString.! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:09:11'!
+accountSummaryForWithdraw: aWithdraw
+
+	^'Extracción por ', aWithdraw value asString.! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:07:42'!
+createAccountSummary
+
+	| summary |
+	
+	summary := OrderedCollection new.
+	
+	transactions do: [ :aTransaction |
+			summary add: (aTransaction accountSummaryMessage: self).
+		].
+	
+	summary add: ('Balance = ', self balance asString).
+	^summary! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 19:54:11'!
+createAccountSummaryForPortfolio: aPortfolioSummary
+	
+	transactions do: [ :aTransaction |
+			aPortfolioSummary add: (aTransaction accountSummaryMessage: self).
+		].! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/13/2020 23:55:03'!
+createNetTransfer
+
+	| netTransfer |
+	
+	netTransfer := transactions 
+		inject: 0 * peso
+		into: [ :currentBalance :transaction | (transaction isKindOf: TransferDepositLeg) ifTrue: [transaction affectBalance: currentBalance] ].
+	
+	^(('Neto de Transferencias = ', netTransfer asString))! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:56:01'!
+doOnEachTransaction: aClosure
+
+	transactions do: [ :aTransaction | aClosure value: aTransaction ].! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:49:34'!
+transactions 
+
+	^transactions copy! !
+
+
+!classDefinition: #AccountSummary category: 'ServiciosFinancieros-Solucion-Portfolio'!
+Object subclass: #AccountSummary
+	instanceVariableNames: 'account'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Solucion-Portfolio'!
+
+!AccountSummary methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:18:45'!
+accountSummaryForDeposit: aDeposit
+
+	^'Depósito por ', aDeposit value asString.! !
+
+!AccountSummary methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:18:56'!
+accountSummaryForTransferDepositLeg: aTransferDeposit
+
+	^'Entrada por transferencia de ', aTransferDeposit value asString.! !
+
+!AccountSummary methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:19:04'!
+accountSummaryForTransferWithdrawLeg: aTransferWithdraw
+
+	^'Salida por transferencia de ', aTransferWithdraw value asString.! !
+
+!AccountSummary methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:19:14'!
+accountSummaryForWithdraw: aWithdraw
+
+	^'Extracción por ', aWithdraw value asString.! !
+
+!AccountSummary methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:52:46'!
+createAccountSummary
+
+	| summary |
+	
+	summary := OrderedCollection new.
+
+	account doOnEachTransaction: [ :aTransaction |
+			summary add: (aTransaction accountSummaryMessage: self)
+		].
+	
+	summary add: ('Balance = ', account balance asString).
+	^summary
+	
+	! !
+
+!AccountSummary methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:25:40'!
+initializeWith: anAccount
+
+	account := anAccount! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'AccountSummary class' category: 'ServiciosFinancieros-Solucion-Portfolio'!
+AccountSummary class
+	instanceVariableNames: ''!
+
+!AccountSummary class methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:24:49'!
+forAccount: anAccount
+
+	^self new initializeWith: anAccount! !
+
 
 !classDefinition: #AccountTransaction category: 'ServiciosFinancieros-Solucion-Portfolio'!
 Object subclass: #AccountTransaction
@@ -555,6 +939,11 @@ Object subclass: #AccountTransaction
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Solucion-Portfolio'!
+
+!AccountTransaction methodsFor: 'value' stamp: 'SO 12/8/2020 13:59:28'!
+accountBalanceValue
+
+	^self subclassResponsibility ! !
 
 !AccountTransaction methodsFor: 'value' stamp: 'HernanWilkinson 9/12/2011 12:25'!
 value 
@@ -566,6 +955,12 @@ value
 affectBalance: aBalance
 
 	self subclassResponsibility ! !
+
+
+!AccountTransaction methodsFor: 'as yet unclassified' stamp: 'SO 12/13/2020 22:19:42'!
+accountSummaryMessage
+
+	^self subclassResponsibility ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -597,6 +992,11 @@ initializeFor: aValue
 	value := aValue ! !
 
 
+!Deposit methodsFor: 'value' stamp: 'SO 12/8/2020 13:59:47'!
+accountBalanceValue
+
+	^ value! !
+
 !Deposit methodsFor: 'value' stamp: 'HernanWilkinson 7/13/2011 18:38'!
 value
 
@@ -607,6 +1007,12 @@ value
 affectBalance: aBalance
 
 	^aBalance + value ! !
+
+
+!Deposit methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:23:23'!
+accountSummaryMessage: anAccountSummary
+
+	^anAccountSummary accountSummaryForDeposit: self.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -637,6 +1043,12 @@ initializeWith: aTransfer
 value
 
 	^transfer value! !
+
+
+!TransferLeg methodsFor: 'as yet unclassified' stamp: 'SO 12/13/2020 22:20:01'!
+accountSummaryMessage
+
+	^self subclassResponsibility ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -673,6 +1085,12 @@ withdrawLeg
 
 	^transfer withdrawLeg! !
 
+
+!TransferDepositLeg methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:09:59'!
+accountSummaryMessage: anAccount
+
+	^anAccount accountSummaryForTransferDepositLeg: self.! !
+
 
 !classDefinition: #TransferWithdrawLeg category: 'ServiciosFinancieros-Solucion-Portfolio'!
 TransferLeg subclass: #TransferWithdrawLeg
@@ -692,6 +1110,12 @@ depositLeg
 
 	^transfer depositLeg! !
 
+
+!TransferWithdrawLeg methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:11:42'!
+accountSummaryMessage: anAccount
+
+	^anAccount accountSummaryForTransferWithdrawLeg: self.! !
+
 
 !classDefinition: #Withdraw category: 'ServiciosFinancieros-Solucion-Portfolio'!
 AccountTransaction subclass: #Withdraw
@@ -706,6 +1130,11 @@ initializeFor: aValue
 	value := aValue ! !
 
 
+!Withdraw methodsFor: 'value' stamp: 'SO 12/8/2020 14:00:05'!
+accountBalanceValue
+
+	^ value negated! !
+
 !Withdraw methodsFor: 'value' stamp: 'HernanWilkinson 7/13/2011 18:33'!
 value
 
@@ -716,6 +1145,12 @@ value
 affectBalance: aBalance
 
 	^aBalance - value! !
+
+
+!Withdraw methodsFor: 'as yet unclassified' stamp: 'SO 12/14/2020 20:09:39'!
+accountSummaryMessage: anAccount
+
+	^anAccount accountSummaryForWithdraw: self.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
