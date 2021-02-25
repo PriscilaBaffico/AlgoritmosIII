@@ -247,83 +247,88 @@ test01CreditCardOwnerNameCannotBeBlank
 
 !classDefinition: #StorefrontTest category: 'TusLibros'!
 TestCase subclass: #StorefrontTest
-	instanceVariableNames: 'objectsFactory merchantProcessorBehaviour'
+	instanceVariableNames: 'objectsFactory cartTimeBehaviour merchantProcessorBehaviour'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:17:00'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:32:01'!
 test01cannotCreateACartWithEmptyCredentials
 	
 	| storefront |
 	storefront := Storefront initializeWithCatalog: self createCatalog .
 	
-	self should: [ storefront createCartWithId: '' andPassword: '' . ]
+	self should: [ storefront createCartWithId: '' andPassword: '' andCartTime: (self cartTimeWithBehaviour: [^true]). ]
 	raise: Error 
 	withExceptionDo: [ :anException |
-		self assert: anException messageText equals: storefront wrongCredentialsErrorDescription.
+		self assert: anException messageText equals: Storefront wrongCredentialsErrorDescription.
 	]! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:17:22'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:31:57'!
 test02cannotCreateACartWithWrongCredentials
 	
 	| storefront |
 	storefront := Storefront initializeWithCatalog: self createCatalog .
 	
-	self should: [ storefront createCartWithId: 'pepe' andPassword: 'asd123'. ]
+	self should: [ storefront createCartWithId: 'pepe' andPassword: 'asd123' andCartTime: (self cartTimeWithBehaviour: [^true]). ]
 	raise: Error 
 	withExceptionDo: [ :anException |
-		self assert: anException messageText equals: storefront wrongCredentialsErrorDescription.
+		self assert: anException messageText equals: Storefront wrongCredentialsErrorDescription.
 	]! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:17:54'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:50:21'!
 test03aNewCartIsEmpty
 	
-	| storefront cartId |
+	| storefront cartId cartTime |
 	storefront := Storefront initializeWithCatalog: self createCatalog .
+	cartTime := (self cartTimeWithBehaviour: [^true]).
 	
-	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword.
-	self assert: (storefront listCart: cartId) isEmpty.! !
+	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.
+	self assert: (storefront listCart: cartId atCartTime: cartTime) isEmpty.! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:18:18'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:51:02'!
 test04aStoreFrontCanAddBooksToAnExistingCart
 	
-	| storefront cartId expectedResult |
+	| storefront cartId expectedResult cartTime |
 	storefront := Storefront initializeWithCatalog: self createCatalog .
 	expectedResult := Dictionary with: (Association key: objectsFactory bookFromTheEditorial value: 2).
+	cartTime := (self cartTimeWithBehaviour: [^true]).
 	
-	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword .
-	storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: 2.
-	self assert: (storefront listCart: cartId ) equals: expectedResult.! !
+	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.
+	storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: 2 atCartTime: cartTime.
+	self assert: (storefront listCart: cartId atCartTime: cartTime) equals: expectedResult.! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:18:45'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:51:44'!
 test05aStoreFrontCanAddBooksToMultipleCarts
 
-	| storefront cartId1  cartId2 expectedResult |
+	| storefront cartId1  cartId2 expectedResult cartTime |
 	storefront := Storefront initializeWithCatalog: self createCatalog .
 	expectedResult := Dictionary with: (Association key: objectsFactory bookFromTheEditorial value: 2).
+	cartTime := (self cartTimeWithBehaviour: [^true]).
 	
-	cartId1 := storefront createCartWithId: self validUserId andPassword: self validUserPassword.
-	cartId2 := storefront createCartWithId: self validUserId andPassword: self validUserPassword.
-	storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId1 numberOfCopies: 2.
+	cartId1 := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.
+	cartId2 := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.
 	
-	self assert: (storefront listCart: cartId1 ) equals: expectedResult.	
-	self assert: (storefront listCart: cartId2 ) isEmpty.! !
+	storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId1 numberOfCopies: 2 atCartTime: cartTime.
+	
+	self assert: (storefront listCart: cartId1 atCartTime: cartTime) equals: expectedResult.	
+	self assert: (storefront listCart: cartId2 atCartTime: cartTime) isEmpty.! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:18:52'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:52:20'!
 test06cannotAddABookToANonExistentCart
 	
-	| storefront cartId |
+	| storefront cartId cartTime |
 	storefront := Storefront initializeWithCatalog: self createCatalog .
 	cartId := 1.
+	cartTime := (self cartTimeWithBehaviour: [^true]).
 	
-	self should: [ storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: 2. ] 
+	self should: [ storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: 2 atCartTime: cartTime. ] 
 	raise: Error 
 	withExceptionDo: [ :anException |
-			self assert: anException messageText equals: storefront couldNotFindCartErrorDescription.
+			self assert: anException messageText equals: Storefront couldNotFindCartErrorDescription.
 		].! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:29:50'!
+!StorefrontTest methodsFor: 'tests' stamp: 'PB 2/25/2021 16:23:32'!
 test07cannotListPurchasesWithWrongCredentials
 
 	| storefront |
@@ -333,7 +338,7 @@ test07cannotListPurchasesWithWrongCredentials
 	self should: [ storefront listPurchasesOf: self validUserId withPassword: 'asd' . ]
 	raise: Error 
 	withExceptionDo: [ :anException |
-		self assert: anException messageText equals: storefront wrongCredentialsErrorDescription.
+		self assert: anException messageText equals: Storefront wrongCredentialsErrorDescription.
 	]
 
 ! !
@@ -376,39 +381,80 @@ test09checkingOutMultipleCartsFromSameUserRegistersAllOfTheTransactions
 
 ! !
 
-!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/24/2021 23:29:26'!
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:59:18'!
 test10cannotAddABookToAnExpiredCart
 
-	| aBook cartId storefront |
+	| cartId storefront cartTime |
 	
-	storefront := Storefront initialize.
-	aBook := 'ASD123'.
-	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword.	
+	storefront := Storefront initializeWithCatalog: self createCatalog.
+	cartTime := self cartTimeWithBehaviour: [ ^false ].
+	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.
 	
-	self 
-	should: [ storefront addBook: aBook toCart: cartId ]
+	self should: [ storefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: 1 atCartTime: cartTime]
 	raise: Error
 	withExceptionDo: [ :anException | 
-			self assert: anException messageText equals: storefront expiredCartErrorDescription.
+			self assert: anException messageText equals: Storefront expiredCartErrorDescription.
+		]! !
+
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:59:27'!
+test11cannotCheckOutAnExpiredCart
+
+	| cartId storefront cartTime |
+	
+	storefront := Storefront initializeWithCatalog: self createCatalog.
+	cartTime := self cartTimeWithBehaviour: [ ^false ].
+	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.	
+	
+	self should: [ self checkout: cartId from: storefront atCartTime: cartTime]
+	raise: Error
+	withExceptionDo: [ :anException | 
+		self assert: anException messageText equals: Storefront expiredCartErrorDescription.
+		]! !
+
+!StorefrontTest methodsFor: 'tests' stamp: 'SO 2/25/2021 18:59:36'!
+test12cannotListAnExpiredCart
+
+	| cartId storefront cartTime |
+	
+	storefront := Storefront initializeWithCatalog: self createCatalog.
+	cartTime := self cartTimeWithBehaviour: [ ^false ].
+	cartId := storefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.	
+	
+	self should: [ storefront listCart: cartId atCartTime: cartTime]
+	raise: Error
+	withExceptionDo: [ :anException | 
+		self assert: anException messageText equals: Storefront expiredCartErrorDescription.
 		]! !
 
 
-!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 13:47:54'!
-checkout: aCartId from: aStorefront
+!StorefrontTest methodsFor: 'private' stamp: 'SO 2/25/2021 18:56:02'!
+checkout: aCartId from: aStorefront atCartTime: aCartTime
 
 	aStorefront checkOutCart: aCartId 
 		withCreditCard: objectsFactory 
 		aValidCreditCard onCashier: objectsFactory aCashier 
 		through: self merchantProcessorForTest 
-		onDateTime: objectsFactory now.! !
+		atCartTime: aCartTime.! !
 
-!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 14:20:44'!
+!StorefrontTest methodsFor: 'private' stamp: 'SO 2/25/2021 18:57:56'!
 checkoutNumberOfBooks: aNumberOfBooks from: aStorefront
 
 	| cartId |
-	cartId := aStorefront createCartWithId: self validUserId andPassword: self validUserPassword.		
-	aStorefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: aNumberOfBooks.
-	self checkout: cartId from: aStorefront.! !
+	cartId := aStorefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: (self cartTimeWithBehaviour: [true]).		
+	aStorefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: aNumberOfBooks atCartTime: (self cartTimeWithBehaviour: [true]).
+	self checkout: cartId from: aStorefront atCartTime: (self cartTimeWithBehaviour: [true]).
+	
+	"cartTime := (self cartTimeWithBehaviour: [^true]).
+	cartId := aStorefront createCartWithId: self validUserId andPassword: self validUserPassword andCartTime: cartTime.		
+	aStorefront addBook: objectsFactory bookFromTheEditorial toCart: cartId numberOfCopies: aNumberOfBooks atCartTime: cartTime.
+	self checkout: cartId from: aStorefront atCartTime: cartTime."! !
+
+
+!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 18:17:55'!
+cartTimeWithBehaviour: aBlockOfBehaviour
+
+	cartTimeBehaviour := aBlockOfBehaviour.
+	^self! !
 
 !StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 16:55:21'!
 createCatalog
@@ -420,7 +466,12 @@ debit: anAmountToDebit from: aCreditCard
 
 	^merchantProcessorBehaviour value: anAmountToDebit value: aCreditCard! !
 
-!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 21:27:46'!
+!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 18:32:17'!
+isCartStillValid: aDateAndTime
+
+	^cartTimeBehaviour value! !
+
+!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 18:38:20'!
 merchantProcessorBehaviour: newBehaviour
 
 	merchantProcessorBehaviour := newBehaviour! !
@@ -430,11 +481,21 @@ merchantProcessorForTest
 	
 	^self! !
 
-!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 21:31:54'!
+!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 18:49:17'!
+now
+
+	^DateAndTime now! !
+
+!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 18:38:35'!
 setUp
 
 	objectsFactory := PublisherTestObjectsFactory new.
 	merchantProcessorBehaviour := [ :anAmountToDebit :aCreditCard |  ]! !
+
+!StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 18:22:56'!
+validCartTime
+
+	^self cartTimeWithBehaviour: [^true].! !
 
 !StorefrontTest methodsFor: 'as yet unclassified' stamp: 'SO 2/22/2021 21:08:13'!
 validUserId
@@ -754,26 +815,83 @@ now
 
 !classDefinition: #Storefront category: 'TusLibros'!
 Object subclass: #Storefront
-	instanceVariableNames: 'credentialAuthenticator clients carts transactions purchases catalog'
+	instanceVariableNames: 'credentialAuthenticator clients carts transactions purchases catalog cartsTime'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 14:30:50'!
-addBook: aBook toCart: aCartId numberOfCopies: aNumber 
+!Storefront methodsFor: 'as yet unclassified' stamp: 'PB 2/25/2021 16:51:38'!
+newValidTimeFrom: aClock
+	^aClock DateTime + (Duration minutes:30)! !
+
+
+!Storefront methodsFor: 'private' stamp: 'SO 2/25/2021 14:08:16'!
+addToDictionary: aDictionary withKey: aKey withValue: aValueToAdd
+
+	aDictionary at: aKey 
+		ifPresent: [ :aValue | aValue add: aValueToAdd ] 
+		ifAbsent: [ aDictionary add: (Association key: aKey value: (OrderedCollection with: aValueToAdd) ) ].! !
+
+!Storefront methodsFor: 'private' stamp: 'SO 2/25/2021 18:12:29'!
+canExecuteActionOnCart: aCartId
+
+	| cartTime |
+	
+	cartTime := cartsTime at: aCartId ifAbsent: [^false]	.
+	
+	^cartTime isCartStillValid: DateAndTime now! !
+
+!Storefront methodsFor: 'private' stamp: 'SO 2/25/2021 17:41:00'!
+cartValidTime
+
+	^DateAndTime now + Duration minutes: 30.! !
+
+!Storefront methodsFor: 'private' stamp: 'SO 2/24/2021 21:06:13'!
+findCart: cartId
+
+	^ carts at: cartId ifAbsent: [ self signalCouldNotFindCartError ].! !
+
+!Storefront methodsFor: 'private' stamp: 'SO 2/25/2021 13:57:00'!
+generateNextIdOf: aDictionary
+
+	(aDictionary isEmpty) ifTrue: [^1].
+	(aDictionary isEmpty) ifFalse: [^aDictionary keys last + 1].! !
+
+
+!Storefront methodsFor: 'errors - private' stamp: 'PB 2/25/2021 16:40:42'!
+signalCouldNotFindCartError
+
+	self error: Storefront couldNotFindCartErrorDescription.! !
+
+!Storefront methodsFor: 'errors - private' stamp: 'PB 2/25/2021 16:32:12'!
+signalExpiredCartError
+
+	^self error: Storefront expiredCartErrorDescription! !
+
+!Storefront methodsFor: 'errors - private' stamp: 'PB 2/25/2021 16:21:49'!
+signalWrongCredentialsError
+	^self error: Storefront wrongCredentialsErrorDescription.! !
+
+
+!Storefront methodsFor: 'behaviour' stamp: 'SO 2/25/2021 18:46:58'!
+addBook: aBook toCart: aCartId numberOfCopies: aNumber atCartTime: aCartTime
 
 	| cart |
-	
-	cart := self findCart: aCartId.
-	cart add: aBook quantity: aNumber.! !
 
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 14:09:05'!
-checkOutCart: aCartId withCreditCard: aCreditCard onCashier: aCashier through: aMerchantProcessor onDateTime: aCheckoutDateTime
+	cart := self findCart: aCartId.
+	(self canExecuteActionOnCart: aCartId) ifFalse: [^ self signalExpiredCartError ].
+	cart add: aBook quantity: aNumber.
+	cartsTime at: aCartId put: aCartTime.! !
+
+!Storefront methodsFor: 'behaviour' stamp: 'SO 2/25/2021 18:48:59'!
+checkOutCart: aCartId withCreditCard: aCreditCard onCashier: aCashier through: aMerchantProcessor atCartTime: aCartTime
 
 	| cart totalAmount transactionId purchaseDetail |
 	
 	cart := self findCart: aCartId.	
-	totalAmount := aCashier checkout: cart payingWith: aCreditCard through: aMerchantProcessor on: aCheckoutDateTime.
+	(self canExecuteActionOnCart: aCartId) ifFalse: [^ self signalExpiredCartError ].
+		
+	totalAmount := aCashier checkout: cart payingWith: aCreditCard through: aMerchantProcessor on: 	aCartTime now.
 	purchaseDetail := self listCart: aCartId.
 	
 	transactionId := self generateNextIdOf: transactions.		
@@ -781,15 +899,12 @@ checkOutCart: aCartId withCreditCard: aCreditCard onCashier: aCashier through: a
 	transactions add: ( Association key: transactionId value: (Transaction withPurchaseDetail: purchaseDetail andTotalAmount: totalAmount) ).
 	self addToDictionary: purchases withKey: aCartId withValue: transactionId.	
 	
+	cartsTime at: aCartId put: aCartTime.
+	
 	^transactionId.! !
 
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 21:05:41'!
-couldNotFindCartErrorDescription
-	
-	^'the cart could not be found'! !
-
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 14:09:26'!
-createCartWithId: aClientId andPassword: aPassword
+!Storefront methodsFor: 'behaviour' stamp: 'SO 2/25/2021 18:07:44'!
+createCartWithId: aClientId andPassword: aPassword andCartTime: aCartTime
 
 	| cartId cart |
 	
@@ -799,39 +914,29 @@ createCartWithId: aClientId andPassword: aPassword
 	cartId := self generateNextIdOf: carts.	
 	cart := Cart acceptingItemsOf: catalog.
 	carts add: (Association key: cartId value: cart).	
+	cartsTime add: (Association key: cartId value: aCartTime).
 	self addToDictionary: clients withKey: aClientId withValue: cartId.	
 	
 	^ cartId.
 ! !
 
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/22/2021 21:23:32'!
-expiredCartErrorDescription
-
-	^'the cart has expired'! !
-
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 23:20:00'!
-initializeWithCatalog: aCatalog
-	
-	credentialAuthenticator := CredentialAuthenticator initialize.
-	clients := Dictionary new.
-	carts := Dictionary new.
-	transactions := Dictionary new.
-	purchases := Dictionary new.
-	catalog := aCatalog.! !
-
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 23:14:33'!
-listCart: aCartId
+!Storefront methodsFor: 'behaviour' stamp: 'SO 2/25/2021 18:48:46'!
+listCart: aCartId atCartTime: aCartTime
 	
 	| cart listedItems |
 	
 	cart := self findCart: aCartId.
+	(self canExecuteActionOnCart: aCartId) ifFalse: [^ self signalExpiredCartError ].
+	
 	listedItems := Dictionary new.
 	
 	catalog keysDo: [ :aBook | (cart includes: aBook) ifTrue: [ listedItems add: (Association key: aBook value: (cart quantityOf: aBook) ) ] ].
 	
+	cartsTime at: aCartId put: aCartTime.
+	
 	^listedItems! !
 
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/25/2021 14:16:47'!
+!Storefront methodsFor: 'behaviour' stamp: 'SO 2/25/2021 14:16:47'!
 listPurchasesOf: aClientId withPassword: aPassword
 
 	| cartIds transactionIds totalAmount totalPurchaseDetail |
@@ -854,48 +959,33 @@ listPurchasesOf: aClientId withPassword: aPassword
 	
 	^Transaction withPurchaseDetail: totalPurchaseDetail andTotalAmount: totalAmount.! !
 
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 21:06:41'!
-signalCouldNotFindCartError
 
-	self error: self couldNotFindCartErrorDescription.! !
-
-!Storefront methodsFor: 'as yet unclassified' stamp: 'SO 2/22/2021 21:23:17'!
-signalExpiredCartError
-
-	^self error: self expiredCartErrorDescription! !
-
-!Storefront methodsFor: 'as yet unclassified' stamp: 'PB 2/21/2021 23:25:15'!
-signalWrongCredentialsError
-	^self error: self wrongCredentialsErrorDescription.! !
-
-!Storefront methodsFor: 'as yet unclassified' stamp: 'PB 2/21/2021 23:26:20'!
-wrongCredentialsErrorDescription
-	^ 'invalid credentials'.! !
-
-
-!Storefront methodsFor: 'private' stamp: 'SO 2/25/2021 14:08:16'!
-addToDictionary: aDictionary withKey: aKey withValue: aValueToAdd
-
-	aDictionary at: aKey 
-		ifPresent: [ :aValue | aValue add: aValueToAdd ] 
-		ifAbsent: [ aDictionary add: (Association key: aKey value: (OrderedCollection with: aValueToAdd) ) ].! !
-
-!Storefront methodsFor: 'private' stamp: 'SO 2/24/2021 21:06:13'!
-findCart: cartId
-
-	^ carts at: cartId ifAbsent: [ self signalCouldNotFindCartError ].! !
-
-!Storefront methodsFor: 'private' stamp: 'SO 2/25/2021 13:57:00'!
-generateNextIdOf: aDictionary
-
-	(aDictionary isEmpty) ifTrue: [^1].
-	(aDictionary isEmpty) ifFalse: [^aDictionary keys last + 1].! !
+!Storefront methodsFor: 'initialization' stamp: 'PB 2/25/2021 14:53:14'!
+initializeWithCatalog: aCatalog
+	
+	credentialAuthenticator := CredentialAuthenticator initialize.
+	clients := Dictionary new.
+	carts := Dictionary new.
+	transactions := Dictionary new.
+	purchases := Dictionary new.
+	cartsTime := Dictionary new.
+	catalog := aCatalog.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'Storefront class' category: 'TusLibros'!
 Storefront class
 	instanceVariableNames: ''!
+
+!Storefront class methodsFor: 'as yet unclassified' stamp: 'PB 2/25/2021 16:39:55'!
+couldNotFindCartErrorDescription
+	
+	^'the cart could not be found'! !
+
+!Storefront class methodsFor: 'as yet unclassified' stamp: 'PB 2/25/2021 16:29:07'!
+expiredCartErrorDescription
+
+	^'the cart has expired'! !
 
 !Storefront class methodsFor: 'as yet unclassified' stamp: 'SO 2/24/2021 23:15:29'!
 initializeWithCatalog: aCatalog
@@ -906,6 +996,10 @@ initializeWithCatalog: aCatalog
 	storefront initializeWithCatalog: aCatalog.
 	
 	^storefront.! !
+
+!Storefront class methodsFor: 'as yet unclassified' stamp: 'PB 2/25/2021 16:20:59'!
+wrongCredentialsErrorDescription
+	^ 'invalid credentials'.! !
 
 
 !classDefinition: #Transaction category: 'TusLibros'!
